@@ -58,7 +58,7 @@ def mouse_callback(event, x, y, flags, params):
 
 
 if __name__ == "__main__":
-    image_path = "Series015_body.tif"
+    image_path = "../python_analog/Series015_body.tif"
     contour, cnt = find_contour(image_path, 15)
     print("Контур:", list(map(list, contour)))
 

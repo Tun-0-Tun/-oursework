@@ -1,96 +1,89 @@
 import numpy as np
-from scipy.sparse import csr_matrix
-from scipy.sparse import vstack, hstack
-
-from auxiliary_functions import stima3, stima4, f, g, u_d
-
-E = 2900
-nu = 0.4
-mu = E / (2 * (1 + nu))
-lmbda = E * nu / ((1 + nu) * (1 - 2 * nu))
-
-print("mu", mu)
-print("lmbda", lmbda)
-
-coordinates = np.loadtxt('coordinates.dat')
-elements3 = np.loadtxt('elements3.dat', dtype=int) - 1
-elements4 = np.loadtxt('elements4.dat', dtype=int) - 1
-neumann = np.loadtxt('neumann.dat', dtype=int) - 1
-dirichlet = np.loadtxt('dirichlet.dat', dtype=int) - 1
-
-n_coords = len(coordinates)
-print('Число координат:', n_coords)
-A = csr_matrix((2 * n_coords, 2 * n_coords), dtype=float)
-b = np.zeros((2 * n_coords, 1))
-
-A_lil = A.tolil()
-
-# Assembly
-for j in range(elements3.shape[0]):
-    I = 2 * elements3[j, [0, 0, 1, 1, 2, 2]] - np.array([1, 0, 1, 0, 1, 0])
-    A_lil[I[:, np.newaxis] + 1, I + 1] += stima3(coordinates[elements3[j]], lmbda, mu)
+from skimage.io import imread
+from scipy.spatial import distance
 
 
-for j in range(elements4.shape[0]):
-    I = 2 * elements4[j, [0, 0, 1, 1, 2, 2, 3, 3]]- np.array([1, 0, 1, 0, 1, 0, 1, 0])
-    # print(stima4(coordinates[elements4[j]], lmbda, mu))
-    A_lil[I[:, np.newaxis] + 1, I + 1] += stima4(coordinates[elements4[j]], lmbda, mu)
+# Функция для чтения изображений в формате TIFF
+def read_tiff(filename):
+    return imread(filename)
 
 
-A = A_lil.tocsr()
-# print(A_lil)
-
-for j in range(elements3.shape[0]):
-    I = 2 * elements3[j, [0, 0, 1, 1, 2, 2]] - np.array([1, 0, 1, 0, 1, 0])
-    fs = f(np.sum(coordinates[elements3[j]], axis=0) / 3)
-    fs_rep = np.tile(fs[:, np.newaxis], (3, 1))  # Повторяем вектор fs, чтобы он имел размерность (6, 1)
-    b[I] += np.linalg.det(np.hstack((np.ones((3, 1)), coordinates[elements3[j]]))) * fs_rep / 6
-
-for j in range(elements4.shape[0]):
-    I = 2 * elements4[j, [0, 0, 1, 1, 2, 2, 3, 3]] - np.array([1, 0, 1, 0, 1, 0, 1, 0])
-    fs = f(np.sum(coordinates[elements4[j, :3]], axis=0) / 4)
-    fs_rep = np.tile(fs[:, np.newaxis], (4, 1))  # Повторяем вектор fs, чтобы он имел размерность (4, 1)
-    b[I] += np.linalg.det(np.hstack((np.ones((3, 1)), coordinates[elements4[j, :3]]))) * fs_rep / 4
+# Функция для измерения периметра и размеров эллипсоида
+def measure_image_properties(image):
+    perimeter = np.sum(image)
+    dimensions_ellipsoid = np.array(image.shape)
+    size = np.sum(image != 0)
+    return perimeter, dimensions_ellipsoid, size
 
 
+# Функция для регистрации последовательности изображений
+def register_sequence(images, parameters, filename, result_path):
+    # Здесь должна быть реализация вашего алгоритма регистрации
 
-if neumann.size != 0:
-    n = (coordinates[neumann[:, 1]] - coordinates[neumann[:, 0]]) @ np.array([[0, -1], [1, 0]])
-    for j in range(neumann.shape[0]):
-        I = 2 * neumann[j, [0, 0, 1, 1]] - np.array([1, 0, 1, 0])
-        gm = g(np.sum(coordinates[neumann[j]], axis=0) / 2, n[j] / np.linalg.norm(n[j])).flatten()
-        b[I] += np.linalg.norm(n[j]) * np.array([gm, gm]).flatten().reshape(-1, 1) / 2
+    # Пример вывода результатов
+    print("Registered sequence with parameters:")
+    for key, value in parameters.items():
+        print(f"{key}: {value}")
+
+    print("Filename:", filename)
+    print("Result path:", result_path)
 
 
-DirichletNodes = np.unique(dirichlet)
-W, M = u_d(coordinates[DirichletNodes, :])
+# Имя файла
+fname = './dataset/Series015.tif'
+res_path_prefix = 'pntsN = 100_journal_E=1e4_P=0.4'
 
-B = np.zeros((M.shape[0], 2 * coordinates.shape[0] ))
+# Параметры материала
+young = 1e4
+poiss = 0.4
 
-M_rows, M_cols = M.shape
+# Суффикс файла с изображениями
+cellm_suffix = '_body.tif'
 
-M = np.roll(M, 1, axis=0)
+# Чтение изображений
+cellm = read_tiff(fname[:-4] + cellm_suffix)
 
-for k in range(2):
-    for l in range(2):
-        diag_values = M[l:M_rows:2, k ]
-        B[l:M_rows:2, 2 * DirichletNodes - 1 + k] = np.diag(diag_values.flatten())
+# Параметры
+parameters = {
+    'verbose': 0,
+    'NonRigid': 1,
+    'recomputeFF': 1,
+    'recomputeSpots': 1,
+    'recomputeRigid': 1,
+    'debugPath': '',
+    'resPathPref': res_path_prefix,
+    'startInd': 0,
+    'finishInd': cellm.shape[2] - 1,
+    'seqLength': cellm.shape[2],
+    'RAnum': 2,
+    'RAtype': 'AO',
+    'matchType': 'DTW',
+    'intType': 'TPS',
+    'Young': young,
+    'Poisson': poiss,
+    'triHmax': 15,
+    'pntsN': 100,
+    'pntsScaleCorr': 1,
+    'alphaDTW': 1.25,
+    'resolveMultMatches': 1,
+    'descTypeCorr': 'centroid',
+    'descTypeDTW': 'centroid'
+}
 
-B = np.roll(B, 1)
+# Измерение свойств изображения
+perimeter, dimensions_ellipsoid, size = measure_image_properties(cellm[:, :, 0])
+cell_stat = {
+    'contour_sampling_dist': perimeter / parameters['pntsN'],
+    'cell_ellipsoid_size': dimensions_ellipsoid,
+    'cell_area': size
+}
 
-mask = np.where(np.sum(np.abs(B), axis=1))[0]
+# Добавление статистики в параметры
+parameters['cellStat'] = cell_stat
 
-A_top = hstack([A, B[mask].T])
-A_bottom = hstack([B[mask], csr_matrix((len(mask), len(mask)), dtype=np.float64)])
-A = vstack([A_top, A_bottom])
+# Обрезка изображений
+cellm = cellm[:, :, parameters['startInd']:parameters['finishInd'] + 1]
 
-b_masked = W[mask]
-b = np.vstack([b, b_masked])
-b = np.roll(b, 2)
-# print(csr_matrix(b))
-
-x = np.linalg.lstsq(A.toarray(), b, rcond=None)[0]
-u = x[:2 * len(coordinates)]
-
-print(x)
-print(u)
+# Регистрация последовательности
+# register_sequence(cellm, parameters, fname, "RA - DistT - FEM")
+print("----")
