@@ -5,20 +5,6 @@ from scipy.sparse import vstack, hstack
 
 
 def u_d(ff):
-    """
-    Data on the Dirichlet boundary.
-
-    Parameters:
-        ff (numpy.ndarray): Displacement field on the Dirichlet boundary.
-                            It has dimension N x 2.
-
-    Returns:
-        W (numpy.ndarray): Direction for which the displacement is given.
-                            It has dimension 2*N x 1.
-        M (numpy.ndarray): Corresponding values. If U is the displacement vector,
-                            the Dirichlet boundary condition is given by M*U = W.
-                            It has dimension 2*N x 2.
-    """
     N = ff.shape[0]
     M = np.zeros((2 * N, 2))
     W = np.zeros((2 * N, 1))
@@ -33,22 +19,6 @@ def u_d(ff):
 
 
 def solveFEM(Pb, ff, P, el3, E, nu):
-    """
-    Solves linear Navier equation.
-
-    Parameters:
-        Pb (numpy.ndarray): Boundary points
-        ff (numpy.ndarray): Deformation field in the boundary points
-        P (numpy.ndarray): Triangulation points
-        el3 (numpy.ndarray): Triangles (finite elements)
-        E (float): Young's modulus
-        nu (float): Poisson ratio
-
-    Returns:
-        U (numpy.ndarray): Deformation field in the inner points of the region
-        Ub (numpy.ndarray): Deformation field on the boundary
-    """
-
     mu = E / (2 * (1 + nu))
     lambda_val = E * nu / ((1 + nu) * (1 - 2 * nu))
 

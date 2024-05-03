@@ -1,6 +1,4 @@
-import matplotlib.pyplot as plt
 import numpy as np
-
 import triangle as tr
 
 
@@ -37,12 +35,9 @@ def getMesh(boundary_points):
     v = B['vertices']
     for tri in B['triangles']:
         a, b, c = v[tri[0]], v[tri[1]], v[tri[2]]
-        # print(triangle_area(a, b, c))
+
         if triangle_area(a, b, c) < 150 or angle_between_points(a, b, c) < 30:
             index_to_delete = np.where(np.all(B['triangles'] == tri, axis=1))[0]
 
-            # Удаляем строку по индексу
             B['triangles'] = np.delete(B['triangles'], index_to_delete, axis=0)
-    # tr.compare(plt, A, B)
-    # plt.show()
     return B['vertices'], B['triangles']
