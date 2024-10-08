@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from GetContour import get_contour_img, GetContour
 from algo_ff_built_FEM_LAME import algo_ff_built_FEM_LAME
 from scipy.spatial import cKDTree
-from test_res import test_res
+# from test_res import test_res
 
 
 def GetFlowField(Pold, Pnew):
@@ -124,7 +124,7 @@ par = {
     'ics': None,
     'meshtype': 'inner'
 }
-image_path = '.\\dataset\\Series015_RA_body.tif'
+image_path = '.\\python_analog\Series015_RA_body.tif'
 multi_layer_tiff = imageio.imread(image_path)
 new_tiff = multi_layer_tiff.copy()
 cellm = np.array(multi_layer_tiff, dtype=np.uint8)
@@ -134,4 +134,4 @@ ffXics, ffYics, flowField = ff_get_shape_bckwrd(cellm, par)
 
 np.save('ffXics_result.npy', ffXics)
 np.save('ffYics_result.npy', ffYics)
-test_res()
+# test_res()
