@@ -30,7 +30,7 @@ def register_sequence(images, parameters, filename, result_path):
 
 
 # Имя файла
-fname = './dataset/Series015.tif'
+fname = './python_analog/Series015.tif'
 res_path_prefix = 'pntsN = 100_journal_E=1e4_P=0.4'
 
 # Параметры материала
@@ -85,5 +85,5 @@ parameters['cellStat'] = cell_stat
 cellm = cellm[:, :, parameters['startInd']:parameters['finishInd'] + 1]
 
 # Регистрация последовательности
-# register_sequence(cellm, parameters, fname, "RA - DistT - FEM")
+register_sequence(cellm, parameters, fname, "RA - DistT - FEM")
 print("----")
