@@ -36,11 +36,11 @@ def algo_ff_built_FEM_LAME(ff, pboundary, sizeIm, E=100000, nu=0.03, triHmax=15,
     if meshtype.lower() == 'inner':
         ptri, tri = getMesh(pboundary)
         # ff2 = scipy.io.loadmat('./Series015_RA_ff.mat')['ff']
-        ptri2 = scipy.io.loadmat('./Series015_RA_ptri.mat')['ptri']
-        tri2 = scipy.io.loadmat('./Series015_RA_tri.mat')['tri']
+        # ptri2 = scipy.io.loadmat('./Series015_RA_ptri.mat')['ptri']
+        # tri2 = scipy.io.loadmat('./Series015_RA_tri.mat')['tri']
         # pboundary2 = scipy.io.loadmat('./Series015_RA_pboundary.mat')['pboundary']
         # fftri2, _ = solveFEM(pboundary2, ff, ptri2, tri2, E, nu)
-        plot_triangulation(ptri, tri,ptri2,tri2)
+        # plot_triangulation(ptri, tri,ptri2,tri2)
         # print(tri)
         # print(tri)
         fftri, _ = solveFEM(pboundary, ff, ptri, tri, E, nu)

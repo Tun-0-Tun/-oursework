@@ -90,7 +90,7 @@ def plot_two_contours(contour1, contour2, name1='Contour 1', name2='Contour 2'):
 
     # Set the title and legend
     ax.set_title('Contours Plot')
-    ax.legend()
+    ax.legend([name1, name2])
 
     # Ensure aspect ratio is equal for proper scaling
     ax.set_aspect('equal', 'box')
@@ -126,9 +126,8 @@ def MatchContours(contour1, contour2):
     return contour1, nearest_points
 
 
-def ff_get_shape_bckwrd_one_step(bin1, bin2, par):
+def ff_get_shape_bckwrd_one_step(cellm1, cellm2, par):
     global ffX, ffY
-    cellm = np.stack((bin1, bin2))
     pntsN = par.get('pntsN', 80)
     intType = par.get('intType', 'TPS')
     matchType = par.get('matchType', 'DTW')
@@ -164,45 +163,37 @@ def ff_get_shape_bckwrd_one_step(bin1, bin2, par):
     # cellm = cellm[:, minY:maxY, minX:maxX]
     flowField = []
 
-    cellm2 = cellm[0]
-
+    cellB1 = get_contour_img(cellm1)
     cellB2 = get_contour_img(cellm2)
-    P1_matlab = scipy.io.loadmat('./Series015_P1.mat')['P1']
-    P2_matlab = scipy.io.loadmat('./Series015_P2.mat')['P2']
-    P1 = GetContour(cellB2, pntsN)
+    
+    P1 = GetContour(cellB1, pntsN)
+    P2 = GetContour(cellB2, pntsN)
+    P1_not_sampled = GetContour(cellB1, 0)
+    
+    P1_matlab = scipy.io.loadmat('./Series015_RA_P1_P2.mat')['P1']
+    P2_matlab = scipy.io.loadmat('./Series015_RA_P1_P2.mat')['P2']
     plot_two_contours(P1, P1_matlab, 'P1', 'P1_matlab')
+    plot_two_contours(P2, P2_matlab, 'P2', 'P2_matlab')
 
-    cellm2_2 = cellm[1]
+    WP2, WP1 = MatchContours(P2, P1_not_sampled)
 
-    cellB2_2 = get_contour_img(cellm2_2)
-    P2 = GetContour(cellB2_2, pntsN)
-
-    # plot_two_contours(P2_not_sampled, P2_matlab, 'P2', 'P2_matlab')
-
-    WP1, WP2 = MatchContours(P1, P2)
-
-
-    WP1_matlab = scipy.io.loadmat('./Series015_RA_WP1_new.mat')
-    WP1_matlab = WP1_matlab['WP1']
-
-    WP2_matlab = scipy.io.loadmat('./Series015_RA_WP2_new.mat')
-    WP2_matlab = WP2_matlab['WP2']
-
+    WP1_matlab = scipy.io.loadmat('./Series015_RA_WP1_WP2.mat')['WP1']
+    WP2_matlab = scipy.io.loadmat('./Series015_RA_WP1_WP2.mat')['WP2']
     plot_two_contours(WP1, WP1_matlab, 'WP1', 'WP1_matlab')
     plot_two_contours(WP2, WP2_matlab, 'WP2', 'WP2_matlab')
 
 
     # Для сравнения результатов
     ff, c = GetFlowField(WP2, WP1)
-    ff2, c2 = GetFlowField(WP2_matlab, WP1_matlab)
+    # ff2, c2 = GetFlowField(WP2_matlab, WP1_matlab)
     flowField.append([c, ff])
 
     if verbose <= 2:
         if useFEM == 2:
-            # ffX, ffY = algo_ff_built_FEM_LAME(ff, c, np.array(cellB2.shape), par.get('Young', 100000),
-            #                                   0.4, par.get('triHmax', 15), meshtype)
-            ffX, ffY = algo_ff_built_FEM_LAME(ff2, c2, np.array(cellB2.shape), par.get('Young', 100000),
+            ffX, ffY = algo_ff_built_FEM_LAME(ff, c, np.array(cellB2.shape), par.get('Young', 100000),
                                               0.4, par.get('triHmax', 15), meshtype)
+            # ffX, ffY = algo_ff_built_FEM_LAME(ff2, c2, np.array(cellB2.shape), par.get('Young', 100000),
+            #                                   0.4, par.get('triHmax', 15), meshtype)
 
     return ffX, ffY, flowField
 

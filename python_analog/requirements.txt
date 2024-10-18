@@ -3,3 +3,5 @@ scipy
 imageio
 matplotlib
 scikit-image
+pygmsh
+pyvista
