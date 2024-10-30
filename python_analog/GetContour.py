@@ -66,3 +66,10 @@ def GetContour(contourIm, pntsNum=60, step=None):
         return ResampleContourPoints2D(P, pntsNum)
     else:
         return P
+
+def get_contour_seq(cellm):
+    cellm_contour = np.zeros_like(cellm).astype(float)
+    for i in range(len(cellm)):
+        cellm_contour[i] = get_contour_img(cellm[i])
+    return cellm_contour
+

@@ -225,6 +225,6 @@ ffXics, ffYics, flowField = ff_get_shape_bckwrd_one_step(cellm[0], cellm[1], par
 ffXics_matlab = scipy.io.loadmat('./Series015_RA_ffX_new.mat')
 ffYics_matlab =  scipy.io.loadmat('./Series015_RA_ffY_new.mat')
 
-
+print(ffXics_matlab['ffX'].shape)
 plot_image_difference(ffXics, ffXics_matlab['ffX'])
 plot_image_difference(ffYics, ffYics_matlab['ffY'])
