@@ -6,6 +6,7 @@ import numpy as np
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 import chain_code as cc
+import diplib as dip
 
 from ResampleContourPoints2D import ResampleContourPoints2D
 
@@ -28,6 +29,11 @@ def read_bin_image(image_path):
 # image_path = "./dataset/Series015_body.tif"
 # image_path_matlab = "./dataset/Series015_1_slice_contour_matlab.tif"
 
+def skeletonize(binary_image):
+    dip_binary_image = dip.Image(binary_image) > 0
+    skel = dip.EuclideanSkeleton(dip_binary_image)
+    return np.asarray(skel)
+
 def get_contour_img(binary_image):
     binary_image = 1 - binary_image
     kernel = np.array([[0, 1, 0],
@@ -35,7 +41,7 @@ def get_contour_img(binary_image):
                        [0, 1, 0]], np.uint8)
     eroded_image = cv2.erode(binary_image, kernel, iterations=1)
     contour = binary_image - eroded_image
-    return contour
+    return skeletonize(contour)
 
 
 def GetContour(contourIm, pntsNum=60, step=None):
